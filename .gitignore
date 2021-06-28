@@ -1,0 +1,21 @@
+# Top-level directories
+/download/
+
+# Editor and misc backup files - anywhere
+*~
+.*~
+.*.swp
+*.bak
+*.bak[0-9][0-9]
+\#*\#
+
+# File-browser settings - anywhere
+.directory
+
+# CVS recovered versions - anywhere
+.#*
+
+# Objects and archives - anywhere
+*.[oa]
+*.la
+*.so
