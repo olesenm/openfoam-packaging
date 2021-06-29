@@ -1,0 +1,18 @@
+# --------------------------------*- sh -*-----------------------------------
+# File: /openfoam/profile.rc
+#
+# Copyright (C) 2021 OpenCFD Ltd.
+# SPDX-License-Identifier: (GPL-3.0+)
+#
+# Profile addins for OpenFOAM (www.openfoam.com)
+#
+# ---------------------------------------------------------------------------
+
+if [ -f /etc/profile.d/binary-paraview.sh ]
+then  . /etc/profile.d/binary-paraview.sh
+fi
+if [ -f /etc/profile.d/openfoam.sh ]
+then  . /etc/profile.d/openfoam.sh
+fi
+
+# ---------------------------------------------------------------------------
