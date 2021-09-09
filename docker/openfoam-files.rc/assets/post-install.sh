@@ -117,23 +117,80 @@ then
     echo "# Define openfoam sandbox: $sandbox" 1>&2
     mkdir -p -m 1777 "$sandbox"
 
-    # Generate /etc/profile.d/openfoam.sh
+    # Generate /etc/profile.d/openfoam-99run.sh
     sed -e 's#@PACKAGE@#'"${package}"'#g' \
-        /openfoam/assets/profile.sh.in > /etc/profile.d/openfoam.sh
+        /openfoam/assets/profile.sh.in > /etc/profile.d/openfoam-99run.sh
+
+    # Trigger creating of mpi links (in case previous installation failed)
+    for trigger in "$projectDir"/platforms/*/update-links-*mpi.sh
+    do
+        if [ -x "$trigger" ]
+        then
+            "$trigger"
+        fi
+    done
 
 else
     echo "Warning: cannot find latest openfoam package" 1>&2
     echo "  /etc/profile.d/openfoam.sh - may require further adjustment" 1>&2
 
-    # Generate /etc/profile.d/openfoam.sh
-    cp -f /openfoam/assets/profile.sh.in /etc/profile.d/openfoam.sh
+    # Generate /etc/profile.d/openfoam-99run.sh
+    cp -f /openfoam/assets/profile.sh.in /etc/profile.d/openfoam-99run.sh
 fi
 
-if [ -f /etc/profile.d/openfoam.sh ]
+
+# Set MPI environment
+
+if command -v mpi-selector >/dev/null
 then
-    chmod 0644 /etc/profile.d/openfoam.sh
+    # openSUSE uses mpi-selector
+    if [ "$(mpi-selector --system --query | wc -l)" -eq 0 ]
+    then
+    (
+        set -- $(mpi-selector --list)
+        if [ "$#" -eq 1 ]
+        then
+            mpi-selector --system --set "$1"
+        fi
+    )
+    fi
+
+    echo "# MPI settings (mpi-selector)" 1>&2
+    mpi-selector --query  1>&2
+    echo "# ---------------" 1>&2
+
+elif [ -f /etc/redhat-release ]
+then
+
+    # RedHat/Fedora generally rely on modules loading, but we may not have them
+    # so attempt to reuse prefs.sys-openmpi instead
+
+    prefs=etc/config.sh/prefs.sys-openmpi
+    if [ -d "$projectDir" ] && [ -f "$projectDir/$prefs" ]
+    then
+    (
+        . "$projectDir/$prefs"
+
+        echo "# MPI environment ($MPI_ARCH_PATH)" 1>&2
+        if [ -d "$MPI_ARCH_PATH" ]
+        then
+
+            # Generate /etc/profile.d/openfoam-00mpi.sh
+            sed -e 's#@MPI_ARCH_PATH@#'"${MPI_ARCH_PATH}"'#g' \
+                /openfoam/assets/mpivars.sh.in > /etc/profile.d/openfoam-00mpi.sh
+        fi
+    )
+    fi
 fi
 
+# Permissions
+for i in /etc/profile.d/openfoam*.sh
+do
+    if [ -f "$i" ]
+    then
+        chmod 0644 "$i"
+    fi
+done
 
 
 # ---------------------------------------------------------------------------

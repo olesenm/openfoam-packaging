@@ -1,5 +1,5 @@
 # --------------------------------*- sh -*-----------------------------------
-# File: /etc/profile.d/openfoam.sh
+# File: /etc/profile.d/openfoam-99run.sh
 #
 # Copyright (C) 2021 OpenCFD Ltd.
 # SPDX-License-Identifier: (GPL-3.0+)
@@ -57,5 +57,7 @@ fi
 # Squash OPENMPI bug (some versions)
 export OMPI_MCA_btl_vader_single_copy_mechanism=none
 
+# Ignore IB load errors
+export OMPI_MCA_btl_base_warn_component_unused=0
 
 # --------------------------------------------------------------------------
