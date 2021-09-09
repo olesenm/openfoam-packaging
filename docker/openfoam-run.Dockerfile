@@ -21,6 +21,7 @@ RUN apt-get update \
     openfoam2106 \
  && rm -rf /var/lib/apt/lists/*
 
+# ---------------
 # User management
 # - nss-wrapper
 # - openfoam sandbox directory

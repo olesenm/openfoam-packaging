@@ -1,0 +1,33 @@
+# ---------------------------------*-sh-*------------------------------------
+# Copyright (C) 2021 OpenCFD Ltd.
+# SPDX-License-Identifier: (GPL-3.0+)
+#
+# Create openfoam '-run' image for rocky linux
+#
+# docker build -f openfoam-run.rocky-Dockerfile .
+
+FROM rockylinux/rockylinux:8 AS distro
+
+FROM distro AS runtime
+RUN dnf -y install wget rsync \
+    sudo passwd shadow-utils nss_wrapper \
+ && dnf -y install 'dnf-command(config-manager)' \
+ && dnf -y config-manager --set-enabled powertools \
+ && dnf -y install epel-release \
+ && dnf -y install 'dnf-command(copr)' \
+ && dnf -y copr enable openfoam/openfoam \
+ && dnf -y install openfoam2106 \
+ && dnf -y clean all
+
+# ---------------
+# User management
+# - nss-wrapper
+# - openfoam sandbox directory
+
+FROM runtime AS user
+COPY openfoam-files.rc/ /openfoam/
+RUN  /bin/sh /openfoam/assets/post-install.sh
+
+ENTRYPOINT [ "/openfoam/run" ]
+
+# ---------------------------------------------------------------------------

@@ -1,0 +1,17 @@
+- The "regular" docker files use an Ubuntu base image, since may users
+  are familiar with Ubuntu and it provides a reasonable small size.
+
+  - openfoam-run.Dockerfile
+  - openfoam-dev.Dockerfile
+  - openfoam-default.Dockerfile
+
+- Example docker files for RPM-based distributions openSUSE, Fedora
+  and RockyLinux.
+
+  - openfoam-run.fedora-Dockerfile
+  - openfoam-run.leap-Dockerfile
+  - openfoam-run.rocky-Dockerfile
+
+  It should be fairly straightforward to adopt these for other
+  requirements. For example, using '-devel' or '-default' packages
+  instead.

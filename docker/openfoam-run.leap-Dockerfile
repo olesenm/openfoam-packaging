@@ -1,0 +1,30 @@
+# ---------------------------------*-sh-*------------------------------------
+# Copyright (C) 2021 OpenCFD Ltd.
+# SPDX-License-Identifier: (GPL-3.0+)
+#
+# Create openfoam '-default' image for openSUSE
+#
+# docker build -f openfoam-default.leap-Dockerfile .
+
+FROM opensuse/leap:15.3 AS distro
+
+FROM distro AS runtime
+RUN zypper -n install -y \
+    nano rsync sudo nss_wrapper \
+ && zypper  -n addrepo -f --no-gpgcheck \
+    https://download.opensuse.org/repositories/science/openSUSE_Leap_15.3/science.repo \
+ && zypper install -y openfoam2106 \
+ && zypper -n clean
+
+# ---------------
+# User management
+# - nss-wrapper
+# - openfoam sandbox directory
+
+FROM runtime AS user
+COPY openfoam-files.rc/ /openfoam/
+RUN  /bin/sh /openfoam/assets/post-install.sh
+
+ENTRYPOINT [ "/openfoam/run" ]
+
+# ---------------------------------------------------------------------------
