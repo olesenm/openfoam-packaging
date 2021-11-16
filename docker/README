@@ -8,10 +8,17 @@
 - Example docker files for RPM-based distributions openSUSE, Fedora
   and RockyLinux.
 
-  - openfoam-run.fedora-Dockerfile
-  - openfoam-run.leap-Dockerfile
-  - openfoam-run.rocky-Dockerfile
+  - openfoam-run_fedora.Dockerfile
+  - openfoam-run_leap.Dockerfile
+  - openfoam-run_rocky.Dockerfile
 
-  It should be fairly straightforward to adopt these for other
-  requirements. For example, using '-devel' or '-default' packages
-  instead.
+  It is straightforward to adopt these for other requirements.
+  For example, using '-devel' or '-default' packages instead.
+
+- Special-purpose docker files (with Ubuntu base image)
+
+  - build_ubuntu.Dockerfile
+  - dpkg-tools_ubuntu.Dockerfile
+
+The build container currently uses the /openfoam/chroot entrypoint
+for user rights. See comments within that file.

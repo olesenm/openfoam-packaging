@@ -1,0 +1,188 @@
+#!/bin/sh
+# File: /openfoam/chroot
+# ----------------------------------------------------------------------
+# Copyright (C) 2020-2021 OpenCFD Ltd.
+# SPDX-License-Identifier: (GPL-3.0+)
+#
+# Entry-point for container (eg, docker) that adds a local user based
+# on the USERID passed in, or a fallback value.
+#
+# This is necessary to ensure that any files generated remain owned
+# and readable by the calling user.
+# Using 'docker run --user=uid:gid' mostly works, but will be HOME-less
+# or have a readonly HOME created by the mount-points.
+#
+# Instead of this, run as root but pass in user information via the
+# environment. Catch these values to create a user and home accordingly
+# and finally switch to that user
+# (uses chroot, which is more common than setpriv)
+#
+# Calling Environment
+#   CHDIR  - preferred working directory, or default to HOME
+#   USERID - the uid of the caller
+#
+# Special command handling
+#   none
+#
+# ----------------------------------------------------------------------
+# Non-root user: simply run
+if [ "$(id -u)" != 0 ]
+then
+    if [ "$#" -eq 0 ]
+    then
+        # Interactive
+        export SHELL="/bin/bash"
+        set "$SHELL" -i
+    fi
+    exec "$@"
+
+    echo "Failed to execute: $1" 1>&2
+    exit 1
+fi
+
+# Preamble
+fallbackUserID=9001
+allow_sudo=true
+unset user_scheme
+# user_scheme=numeric
+# user_scheme=foam
+
+: "${CHDIR:=}"
+userspec="user:users"
+if [ "${USERID:-0}" = 0 ]
+then
+    USERID="$fallbackUserID"
+else
+    case "$user_scheme" in
+    (numeric) userspec="user$USERID:users" ;;
+    (foam | openfoam) userspec="${user_scheme}:users" ;;
+    esac
+fi
+# --------
+
+export HOME="/home/${userspec%:*}"
+export SHELL="/bin/bash"
+
+/usr/sbin/useradd --shell "$SHELL" \
+    -o -m -u "$USERID" -g "${userspec#*:}" "${userspec%:*}" 2>/dev/null
+
+# ----------------------------------------------------------------------
+# Preload some commands in bash history
+
+if dpkg-vendor --derives-from debian 2>/dev/null
+then
+    cat << COMMANDS > "$HOME"/.bash_history
+debian/rules prepare
+dpkg-buildpackage --no-sign
+debian/rules config-foam
+debian/rules build-foam
+dh build
+fakeroot dh binary
+dpkg-buildpackage --no-sign --build=binary
+COMMANDS
+fi
+
+# ----------------------------------------------------------------------
+
+# If docker mount-points are within $HOME, 'useradd' will not create $HOME.
+# Thus need to populate from skeleton files ourselves...
+skel=/etc/skel
+if [ -d "$skel" ]
+then
+    for i in .bash_logout .bash_profile .bashrc .profile
+    do
+        if [ -e "$skel/$i" ] && [ ! -e "$HOME/$i" ]
+        then
+            cp "$skel/$i" "$HOME/$i"
+        fi
+    done
+fi
+
+# Preferred prompt
+cat << COMMANDS >> "$HOME"/.bashrc
+[ -n "\$PS1" ] && PS1='\\h:\\w/\\n\\u\\$ '
+COMMANDS
+
+# Ensure user can write into their own home and various dot files
+/usr/bin/chown "$userspec" "$HOME" 2>/dev/null
+for i in .bash_history .bash_logout .bash_profile .bashrc .profile
+do
+    if [ -e "$HOME/$i" ]
+    then
+        /usr/bin/chown "$userspec" "$HOME/$i" 2>/dev/null
+    fi
+done
+
+
+# sudo
+# ----
+# Allow entrypoint user to sudo back to root.
+# Not secure, but people could also just bypass entrypoint as well
+if [ "$allow_sudo" = true ]
+then
+    if [ -d /etc/sudoers.d ]
+    then
+        cat<<-__EOF__ > /etc/sudoers.d/openfoam-chroot
+	## Grant sudo rights for chroot container user
+	${userspec%:*} ALL=(ALL) NOPASSWD:ALL
+	## END
+	__EOF__
+        chmod 0440 /etc/sudoers.d/openfoam-chroot
+    else
+        echo "Warning: no /etc/sudoers.d/" 1>&2
+        echo "    perhaps sudo was not installed" 1>&2
+    fi
+fi
+
+
+# ----------------------------------------------------------------------
+# Getting ready to start
+
+# echo "Starting with user='$USERNAME' ($USERID)" 1>&2
+
+unset chdir
+if [ -n "$CHDIR" ]
+then
+    if [ -d "$CHDIR" ]
+    then
+        cd "$CHDIR" && chdir=true
+    fi
+    [ -n "$chdir" ] || echo "No directory: $CHDIR" 1>&2
+fi
+if [ -z "$chdir" ]
+then
+    if cd "$HOME"
+    then
+        chdir=true
+    else
+        echo "No home directory: $HOME" 1>&2
+    fi
+fi
+
+# ----------------------------------------------------------------------------
+
+# Handle special commands
+
+
+# Execute command or use interactive shell
+[ "$#" -gt 0 ] || set "$SHELL" -i
+
+
+# ----------------------------------------------------------------------------
+
+chroot=/usr/bin/chroot
+[ -x /usr/sbin/chroot ] && chroot=/usr/sbin/chroot
+
+# CentOS/RedHat < 8 does not have --skip-chdir
+# so add 'cd ...' into the history for some convenience
+if [ -f /etc/redhat-release ] \
+&& grep -q 'VERSION_ID="7"' /etc/os-release 2>/dev/null
+then
+    [ "$chdir" = true ] && echo "cd $PWD" >> "$HOME/.bash_history"
+
+    exec "$chroot" --userspec="$userspec" / "$@"
+else
+    exec "$chroot" --userspec="$userspec" --skip-chdir / "$@"
+fi
+
+# ----------------------------------------------------------------------------

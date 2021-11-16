@@ -2,33 +2,30 @@
 # Copyright (C) 2021 OpenCFD Ltd.
 # SPDX-License-Identifier: (GPL-3.0+)
 #
-# Create openfoam '-run' image using Ubuntu.
+# Create openfoam '-run' image for Rocky Linux using copr repo.
 #
 # Example
-#     docker build -f openfoam-run.Dockerfile .
-#     docker build --build-arg OS_VER=impish --build-arg FOAM_VERSION=2112 ...
-#
-# Note
-#    Uses wget for fewer dependencies than curl
+#     docker build -f openfoam-run_rocky.Dockerfile .
+#     docker build --build-arg OS_VER=8 --build-arg FOAM_VERSION=2112 ...
 #
 # ---------------------------------------------------------------------------
 ARG OS_VER=latest
 
-FROM ubuntu:${OS_VER} AS distro
+FROM rockylinux/rockylinux:${OS_VER} AS distro
 
 FROM distro AS runtime
 ARG FOAM_VERSION=2106
 ARG PACKAGE=openfoam${FOAM_VERSION}
-ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update \
- && apt-get -y install --no-install-recommends \
-    apt-utils vim-tiny nano-tiny wget ca-certificates rsync \
-    sudo passwd libnss-wrapper \
- && wget -q -O - https://dl.openfoam.com/add-debian-repo.sh | bash \
- && apt-get update \
- && apt-get -y install --no-install-recommends ${PACKAGE} \
- && rm -rf /var/lib/apt/lists/*
+RUN dnf -y install wget rsync \
+    sudo passwd shadow-utils nss_wrapper \
+ && dnf -y install 'dnf-command(config-manager)' \
+ && dnf -y config-manager --set-enabled powertools \
+ && dnf -y install epel-release \
+ && dnf -y install 'dnf-command(copr)' \
+ && dnf -y copr enable openfoam/openfoam \
+ && dnf -y install ${PACKAGE} \
+ && dnf -y clean all
 
 # ---------------
 # User management

@@ -14,12 +14,34 @@ eval "$(sed -ne '/^PRETTY_NAME=/p' /etc/os-release 2>/dev/null)"
 
 # Admin user
 sudo_user=sudofoam
-grep -q "^${sudo_user}:" /etc/passwd 2>/dev/null || unset sudo_user
+if [ -f /etc/sudoers.d/openfoam ]
+then
+    grep -q "^${sudo_user}:" /etc/passwd 2>/dev/null || unset sudo_user
+else
+    unset sudo_user
+fi
 
 
-# The (latest) installed version
-prefix=/usr/lib/openfoam
-projectDir="$(/bin/ls -d "$prefix"/openfoam[0-9]* 2>/dev/null | sort -n | tail -1)"
+# Find the (latest) installed version
+unset prefix projectDir
+findLatestOpenFOAM()
+{
+    prefix="$1"
+    projectDir="$(/bin/ls -d "$prefix"/openfoam[0-9]* 2>/dev/null | sort -n | tail -1)"
+}
+
+if [ -f "/openfoam/META-INFO/api-info" ]
+then
+    # Installed directly under /openfoam
+    unset prefix
+    projectDir=/openfoam
+else
+    findLatestOpenFOAM /openfoam
+
+    # Installed in system locations
+    [ -n "$projectDir" ] || findLatestOpenFOAM /usr/lib/openfoam
+fi
+
 
 unset foam_api foam_patch foam_build release_notes
 
@@ -42,6 +64,7 @@ else
     unset projectDir
 fi
 
+
 # ---------------------------------------------------------------------------
 # Output
 
@@ -57,7 +80,7 @@ cat<< '__BANNER__'
 __BANNER__
 
 cat<< __NOTES__
- Release notes:  https://www.openfoam.com/releases/${release_notes}
+ Release notes:  https://www.openfoam.com/news/main-news/${release_notes}
  Documentation:  https://www.openfoam.com/documentation/
  Issue Tracker:  https://develop.openfoam.com/Development/openfoam/issues/
  Local Help:     more /openfoam/README

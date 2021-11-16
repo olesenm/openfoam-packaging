@@ -1,6 +1,8 @@
 # Ignore everything, except scripts, templates, resources etc.
+# allow tar files for sideloading via ADD
 *
 !*.sh
 !*.in
 !*.rc
+!*.tar
 # ---------------------------------------------------------------------------

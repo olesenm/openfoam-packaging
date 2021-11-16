@@ -6,15 +6,50 @@
 #
 # A post-installation setup adjustment (OpenFOAM container environment)
 #
+# -fix-perms : execution bits on main directory and entrypoint(s)
+# -no-sudo   : disable setup for a sudo user
 # ------------------------------------------------------------------------
-# General setup
+sudo_user=sudofoam
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    (-h | -help*)
+        echo "No help available" ;;
+
+    (-no-sudo)
+        unset sudo_user ;;
+
+    # Correct some permissions (or use fix-perms.sh beforehand)
+    (-fix-perms)
+        if [ -d /openfoam ]
+        then
+            echo "# Permissions on /openfoam and entry point(s)" 1>&2
+            chmod a+rX /openfoam
+
+            for dir in /openfoam/assets
+            do
+                [ -d "$dir" ] && chmod -R a+rX "$dir"
+            done
+            for script in /openfoam/chroot /openfoam/run
+            do
+                [ -x "$script" ] && chmod 0755 "$script"
+            done
+        fi
+        ;;
+    esac
+    shift
+done
+
+if [ ! -d /openfoam ]
+then
+    echo "# No /openfoam directory - stopping" 1>&2
+    exit 1
+fi
+
 echo "# Home directory for container user: /home/openfoam" 1>&2
 [ -d "/home/openfoam" ] || mkdir -p /home/openfoam
-
-echo "# Permissions on /openfoam and entry point" 1>&2
-chmod -R a+rX /openfoam
-chmod 0755 /openfoam/run
-
 
 # ------------------------------------------------------------------------
 # Pseudo-admin user 'sudofoam' and a sudoers entry for that user
@@ -22,21 +57,25 @@ chmod 0755 /openfoam/run
 # None of this is particularly secure, but if we wish to grant unlimited
 # sudo rights, this is what it takes
 
-sudo_user=sudofoam
+if [ -n "$sudo_user" ] && grep -q "^${sudo_user}:" /etc/passwd 2>/dev/null
+then
+    echo "# User <$sudo_user> already exists - not adding as admin-user" 1>&2
+    unset sudo_user
+fi
 
 if [ "${sudo_user:-none}" != none ] \
- && /usr/sbin/useradd \
+&& command -v sudo >/dev/null \
+&& /usr/sbin/useradd \
         --comment "sudo user for openfoam container" \
         --user-group \
         --create-home \
         --shell /bin/bash \
-        ${sudo_user}
+        "${sudo_user}"
 then
     echo "# Added user and sudo content for <$sudo_user> admin-user" 1>&2
-
     if [ -x /usr/bin/passwd ]
     then
-        cat<<-__EOF__ | /usr/bin/passwd $sudo_user 2>/dev/null
+        cat<<-__EOF__ | /usr/bin/passwd "${sudo_user}" 2>/dev/null
 	foam
 	foam
 	__EOF__
@@ -44,14 +83,13 @@ then
     if [ -d /etc/sudoers.d ]
     then
         cat<<-__EOF__ > /etc/sudoers.d/openfoam
-	## An 'admin' user name for sudo within openfoam container
+	## Admin (sudo) user within openfoam container
 	${sudo_user} ALL=(ALL) NOPASSWD:ALL
 	## END
 	__EOF__
         chmod 0440 /etc/sudoers.d/openfoam
     else
-        echo "Warning: no /etc/sudoers.d/" 1>&2
-        echo "    perhaps sudo was not installed" 1>&2
+        echo "Warning: no /etc/sudoers.d/ - sudo not installed?" 1>&2
     fi
 
 # This does not seem to work:
@@ -64,7 +102,7 @@ then
 #
 #     chmod 0755 /usr/bin/sudofoam
 else
-    echo "# No sudo admin-account added" 1>&2
+    echo "# No admin (sudo) account added" 1>&2
 fi
 
 
@@ -100,16 +138,33 @@ else
 fi
 
 
-# Create/update profile
-
 # Find the (latest) installed version
-prefix=/usr/lib/openfoam
-projectDir="$(/bin/ls -d "$prefix"/openfoam[0-9]* 2>/dev/null | sort -n | tail -1)"
+unset prefix projectDir
+findLatestOpenFOAM()
+{
+    prefix="$1"
+    projectDir="$(/bin/ls -d "$prefix"/openfoam[0-9]* 2>/dev/null | sort -n | tail -1)"
+}
+
+if [ -f "/openfoam/META-INFO/api-info" ]
+then
+    # Installed directly under /openfoam
+    unset prefix
+    projectDir=/openfoam
+else
+    findLatestOpenFOAM /openfoam
+
+    # Installed in system locations
+    [ -n "$projectDir" ] || findLatestOpenFOAM /usr/lib/openfoam
+fi
+
+
+# Create/update profile
 
 if [ -d "$projectDir" ]
 then
     package="${projectDir##*/}"
-    echo "# Found openfoam=$package" 1>&2
+    echo "# Found openfoam=$package prefix=${prefix:-/}" 1>&2
 
     # Disposable 'sandbox'
     sandbox="$projectDir/sandbox"
@@ -118,17 +173,9 @@ then
     mkdir -p -m 1777 "$sandbox"
 
     # Generate /etc/profile.d/openfoam-99run.sh
-    sed -e 's#@PACKAGE@#'"${package}"'#g' \
+    sed -e "s#@PREFIX@#${prefix}#g" \
+        -e "s#@PACKAGE@#${package}#g" \
         /openfoam/assets/profile.sh.in > /etc/profile.d/openfoam-99run.sh
-
-    # Trigger creating of mpi links (in case previous installation failed)
-    for trigger in "$projectDir"/platforms/*/update-links-*mpi.sh
-    do
-        if [ -x "$trigger" ]
-        then
-            "$trigger"
-        fi
-    done
 
 else
     echo "Warning: cannot find latest openfoam package" 1>&2
@@ -175,9 +222,9 @@ then
         if [ -d "$MPI_ARCH_PATH" ]
         then
 
-            # Generate /etc/profile.d/openfoam-00mpi.sh
+            # Generate /etc/profile.d/openfoam-01openmpi.sh
             sed -e 's#@MPI_ARCH_PATH@#'"${MPI_ARCH_PATH}"'#g' \
-                /openfoam/assets/mpivars.sh.in > /etc/profile.d/openfoam-00mpi.sh
+                /openfoam/assets/mpivars.sh.in > /etc/profile.d/openfoam-01openmpi.sh
         fi
     )
     fi

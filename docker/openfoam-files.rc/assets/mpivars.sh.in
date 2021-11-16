@@ -15,7 +15,10 @@ then
     case "$PATH" in
     (*"${mpi_prefix}"/bin*) ;;
     (*)
-        PATH="${mpi_prefix}/bin:$PATH"
+        if [ -d "${mpi_prefix}/bin" ]
+        then
+            PATH="${mpi_prefix}/bin:$PATH"
+        fi
     esac
 
     # MANPATH... not so important (manpages may/may not be installed anyhow)

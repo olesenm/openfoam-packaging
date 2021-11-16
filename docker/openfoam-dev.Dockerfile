@@ -2,15 +2,22 @@
 # Copyright (C) 2021 OpenCFD Ltd.
 # SPDX-License-Identifier: (GPL-3.0+)
 #
-# Add development layer onto the openfoam '-run' image
+# Add development layer onto the openfoam '-run' (Ubuntu) image.
 #
-# docker build -f openfoam-dev.Dockerfile .
+# Example
+#     docker build -f openfoam-dev.Dockerfile .
+#     docker build --build-arg FOAM_VERSION=2112 ...
+#
+# ---------------------------------------------------------------------------
+ARG FOAM_VERSION=2106
 
-FROM opencfd/openfoam2106-run
+FROM opencfd/openfoam${FOAM_VERSION}-run
+ARG FOAM_VERSION
+ARG PACKAGE=openfoam${FOAM_VERSION}-dev
+ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
- && DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
-    openfoam2106-dev \
+ && apt-get -y install --no-install-recommends ${PACKAGE} \
  && rm -rf /var/lib/apt/lists/*
 
 

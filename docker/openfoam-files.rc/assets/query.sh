@@ -14,9 +14,26 @@
 #
 # ------------------------------------------------------------------------
 
-# The (latest) installed version
-prefix=/usr/lib/openfoam
-projectDir="$(/bin/ls -d "$prefix"/openfoam[0-9]* 2>/dev/null | sort -n | tail -1)"
+# Find the (latest) installed version
+unset prefix projectDir
+findLatestOpenFOAM()
+{
+    prefix="$1"
+    projectDir="$(/bin/ls -d "$prefix"/openfoam[0-9]* 2>/dev/null | sort -n | tail -1)"
+}
+
+if [ -f "/openfoam/META-INFO/api-info" ]
+then
+    # Installed directly under /openfoam
+    unset prefix
+    projectDir=/openfoam
+else
+    findLatestOpenFOAM /openfoam
+
+    # Installed in system locations
+    [ -n "$projectDir" ] || findLatestOpenFOAM /usr/lib/openfoam
+fi
+
 
 getApiInfo()
 {
