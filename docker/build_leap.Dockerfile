@@ -18,6 +18,7 @@ FROM opensuse/leap:${OS_VER} AS distro
 
 FROM distro AS base0
 ARG OS_VER
+ARG MPI_TYPE=openmpi2
 
 RUN zypper install -y rsync wget sudo nss_wrapper \
  && zypper install -y -t pattern devel_C_C++ \
@@ -25,7 +26,7 @@ RUN zypper install -y rsync wget sudo nss_wrapper \
  && zypper install -y \
     flex libfl-devel \
     readline-devel zlib-devel \
-    openmpi-devel \
+    ${MPI_TYPE}-devel \
     fftw3-devel \
     libboost_system-devel \
     libboost_thread-devel \
@@ -34,7 +35,7 @@ RUN zypper install -y rsync wget sudo nss_wrapper \
     https://download.opensuse.org/repositories/science/openSUSE_Leap_${OS_VER}/science.repo \
  && zypper --no-gpg-checks refresh science \
  && zypper install -y \
-    scotch-devel ptscotch-openmpi-devel \
+    scotch-devel ptscotch-${MPI_TYPE}-devel \
     cgal-devel \
  && zypper -n clean
 
