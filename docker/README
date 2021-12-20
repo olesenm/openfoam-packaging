@@ -1,4 +1,4 @@
-- The "regular" docker files use an Ubuntu base image, since may users
+- The "regular" docker files use an Ubuntu base image, since many users
   are familiar with Ubuntu and it provides a reasonable small size.
 
   - openfoam-run.Dockerfile
@@ -19,6 +19,12 @@
 
   - build_ubuntu.Dockerfile
   - dpkg-tools_ubuntu.Dockerfile
+
+- Other special-purpose docker files
+
+  - build_leap.Dockerfile
+  - build_ubifake.Dockerfile
+  - deploy_ubi.Dockerfile
 
 The build container currently uses the /openfoam/chroot entrypoint
 for user rights. See comments within that file.

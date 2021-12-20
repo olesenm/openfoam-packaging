@@ -14,14 +14,13 @@ ARG OS_VER=15.3
 FROM opensuse/leap:${OS_VER} AS distro
 
 FROM distro AS runtime
-ARG OS_VER
 ARG FOAM_VERSION=2106
 ARG PACKAGE=openfoam${FOAM_VERSION}
 
 RUN zypper -n install -y \
     nano rsync sudo nss_wrapper \
  && zypper  -n addrepo -f --no-gpgcheck \
-    https://download.opensuse.org/repositories/science/openSUSE_Leap_${OS_VER}/science.repo \
+    'https://download.opensuse.org/repositories/science/openSUSE_Leap_$releasever/' science \
  && zypper install -y ${PACKAGE} \
  && zypper -n clean
 

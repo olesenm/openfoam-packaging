@@ -13,6 +13,11 @@ Files and assets for creating
 The container files listed here can provide a reasonable basis for
 creating other images on top of OpenFOAM.
 
+If you are using an ARM-based machine, the standard AMD64 images will
+be rather slow (due to the emulation layer). For these type of
+machines it is recommended to simply create your own image using
+openSUSE Leap components (see the openfoam-run_leap.Dockerfile).
+
 
 ## License
 

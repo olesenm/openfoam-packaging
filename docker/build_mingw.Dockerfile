@@ -2,14 +2,16 @@
 # Copyright (C) 2021 OpenCFD Ltd.
 # SPDX-License-Identifier: (GPL-3.0+)
 #
-# openSUSE Leap environment for building OpenFOAM packages,
-# uses system and science packages wherever possible.
+# openSUSE Leap environment for building OpenFOAM packages with mingw.
+#
+# The initial layers (system and science packages) are kept identical to
+# the usual leap-build-openfoam to reuse those layers if possible.
 #
 # Example
 #
-#     docker build -f build_leap.Dockerfile .
+#     docker build -f build_mingw.Dockerfile .
 #
-#     docker build --build-arg OS_VER=15.3 -t leap-build-openfoam ...
+#     docker build --build-arg OS_VER=15.3 -t mingw-build-openfoam ...
 #
 # ---------------------------------------------------------------------------
 ARG OS_VER=15.3
@@ -37,6 +39,13 @@ RUN zypper install -y rsync wget sudo nss_wrapper \
  && zypper install -y \
     scotch-devel ptscotch-${MPI_TYPE}-devel \
     cgal-devel \
+ && zypper -n clean
+
+RUN zypper install -y \
+    mingw64-cross-gcc-c++ \
+    mingw64-libgmp mingw64-libmpc mingw64-libmpfr mingw64-libstdc++ \
+    mingw64-libwinpthread1 mingw64-winpthreads-devel \
+    mingw64-libz mingw64-zlib-devel \
  && zypper -n clean
 
 

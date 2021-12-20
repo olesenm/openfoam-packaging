@@ -1,0 +1,296 @@
+#!/bin/sh
+# Default image
+image="focal-build-openfoam"
+
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2020-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# SPDX-License-Identifier: (GPL-3.0+)
+#
+# Script
+#     openfoam-chroot
+#
+# Description
+#     Run script for openfoam container images that use the
+#     /openfoam/chroot entry point (normally when building contents).
+#
+#     It uses chroot internally to maintain nearly identical mount names
+#     within the home directory.
+#
+#     Has various debian-specific build shortcut options (subject to change).
+#
+#     Images are normally named (focal-build-openfoam etc)
+#
+#------------------------------------------------------------------------------
+printHelp() {
+    cat <<HELP_HEAD
+
+Usage: $0 [OPTION] [short-cut | command]
+options:
+  -data=DIR         Specify mount dir for container '/data'
+  -dir=dir          Change directory
+  -dist=name        Specify the distro code name (eg focal, leap, ...)
+  -image=NAME       Specify image
+  -scratch          Same as -dir=scratch
+HELP_HEAD
+
+if [ -n "$1" ]
+then
+cat<<'HELP_FULL'
+  -entry=PATH       Alternative entry point
+  -buildah          Use buildah instead of docker (FUTURE)
+  -docker           Use docker (default)
+  -podman           Use podman instead of docker (FUTURE)
+  -sudo             Prefix container calls with 'sudo'
+  -quiet            Reduce verbosity
+HELP_FULL
+fi
+
+cat<<'FOOTER'
+  -help             Print the usage
+
+shortcuts:
+  clean                 [debian/rules clean] - performs a shallow clean
+  prepare               [debian/rules prepare]
+  source                [dpkg-source -i'.*' -b .]
+  binary | build-binary [dpkg-buildpackage --no-sign --build=binary]
+
+Run specified docker image
+FOOTER
+
+    exit 0  # A clean exit
+}
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+# Constants - user name/locations MUST correspond to the image assets
+
+# Parse options
+toolChain=docker
+container_home='/home/user'             # Home for container user
+
+
+#------------------------------------------------------------------------------
+
+# Default distName from the script name (stripped of initial "Run-")
+distName="${0##*/Run-}"
+distName="${distName##*/}"
+
+case "$distName" in
+(*-build-openfoam)
+    # Eg, called as "Run-focal-build-openfoam" etc,
+    # - treat like as an qualified image name to run.
+    image="${distName}"
+    ;;
+(*)
+    if [ "${distName#*-}" = "${distName}" ]
+    then
+        # Eg, called as "Run-focal" etc. Treat as build image
+        # - treat like as an unqualified build image name.
+        image="${distName}-build-openfoam"
+    fi
+    ;;
+esac
+
+# Other examples
+#     Run-leap
+#     openfoam-chroot -image=focal-build-mingw
+
+#------------------------------------------------------------------------------
+# Parse options
+
+unset sudo
+unset optDryrun optEntrypoint optQuiet optVerbose
+unset mount2Dir
+
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    ('') ;;
+
+    (-h | -help*)
+        printHelp
+        ;;
+
+    (-buildah | -docker | -podman)
+        toolChain="${1#*-}"
+        ;;
+    (-dir=*)
+        cd "${1#*=}" || exit
+        ;;
+    (-scratch)
+        cd "${1#*-}" || exit
+        ;;
+    (-entry=*)   # Alternative entrypoint
+        optEntrypoint="${1#*=}"
+        ;;
+
+    # Additional DATA mount
+    (-data=*)
+        mount2Dir="${1#*=}"
+        ;;
+
+    (-dist=*)
+        distName="${1#*=}"
+        image="${distName}-build-openfoam"
+        ;;
+
+    (-image=*)
+        image="${1#*=}"
+        ;;
+
+    (-dry-run | -dryrun)
+        optDryrun=true
+        ;;
+    (-sudo)     # Use sudo
+        sudo="sudo"
+        ;;
+
+    (-quiet)
+        optQuiet=true
+        ;;
+
+    (clean)
+        [ -z "$optQuiet" ] && echo "Shortcut: $1" 1>&2
+        set -- debian/rules clean
+        break
+        ;;
+    (prepare)
+        [ -z "$optQuiet" ] && echo "Shortcut: $1" 1>&2
+        set -- debian/rules prepare
+        break
+        ;;
+    (source)
+        [ -z "$optQuiet" ] && echo "Shortcut: $1" 1>&2
+        set -- dpkg-source -i'.*' -b .
+        break
+        ;;
+    (binary | build-binary)
+        [ -z "$optQuiet" ] && echo "Shortcut: $1" 1>&2
+        set -- dpkg-buildpackage --no-sign --build=binary
+        break
+        ;;
+
+    (*)
+        [ -z "$optQuiet" ] && echo "Pass through options/arguments: $@" 1>&2
+        break
+        ;;
+    esac
+    shift
+done
+
+#------------------------------------------------------------------------------
+
+# Sanity and setup
+
+# The user id, home for use within docker (guest system)
+guest_uid="$(id -u 2>/dev/null)"
+guest_gid="$(id -g 2>/dev/null)"
+[ -n "$guest_uid" ] || die "Cannot determine current user id"
+[ -n "$guest_gid" ] || die "Cannot determine current group id"
+
+# Preserve equivalent working directory (within home) if possible
+unset homeBaseMount
+
+homeSubmount="${PWD#$HOME/}"
+if [ -n "$homeSubmount" ] && [ "$homeSubmount" != "$PWD" ]
+then
+    homeBaseMount="${homeSubmount%%/*}"
+else
+    unset homeSubmount
+fi
+
+# Data directory (optional)
+if [ -n "$mount2Dir" ]
+then
+    if [ -d "$mount2Dir" ]
+    then
+        mount2Dir="$(cd "$mount2Dir" && pwd -P)"
+    else
+        echo "${0##*/}: ignore invalid -data directory: $mount2Dir" 1>&2
+        unset mount2Dir
+    fi
+fi
+
+
+# Options/arguments for mount points
+# - automatically add in ~/openfoam and ~/OpenFOAM if available
+mount_points()
+{
+    if [ -n "$homeSubmount" ]
+    then
+        echo "--env=CHDIR=${container_home}/${homeSubmount}"
+    fi
+
+    set -- "$homeBaseMount"
+    for i in openfoam OpenFOAM
+    do
+        if [ "$homeBaseMount" != "$i" ] && [ -d "$HOME/$i" ]
+        then
+            set -- "$@" "$i"
+        fi
+    done
+    [ -n "$homeBaseMount" ] || homeBaseMount="$1"
+
+    for i
+    do
+        echo "--volume=${HOME}/${i}:${container_home}/${i}"
+    done
+
+    if [ "$#" = 0 ] && [ -z "$optQuiet" ]
+    then
+        echo "No mount points?" 1>&2
+    fi
+}
+
+if [ -n "$optDryrun" ]
+then
+    runPrefix="echo"
+    echo "(dry-run)" 1>&2
+    echo 1>&2
+else
+    runPrefix="$sudo"
+fi
+
+if [ -z "$optQuiet" ]
+then
+    cat << INFORMATION 1>&2
+---------------
+Image:  $image
+Mount:  ~/${homeBaseMount}
+Entry:  ${optEntrypoint:-[default]}
+Dir:    ~/${homeSubmount}
+Cmd:    $@
+---------------
+INFORMATION
+fi
+
+$runPrefix ${toolChain:?} run \
+    --rm -t -i \
+    --env=DEB_BUILD_OPTIONS="parallel=0" \
+    --env=USERID="$guest_uid" \
+    $(mount_points) \
+    ${mount2Dir:+--volume="$mount2Dir:/data"} \
+    ${optEntrypoint:+--entrypoint="$optEntrypoint"} \
+    "$image" "$@"
+
+# -----------------------------------------------------------------------------
