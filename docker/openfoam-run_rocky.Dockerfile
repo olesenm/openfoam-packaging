@@ -14,7 +14,7 @@ ARG OS_VER=latest
 FROM rockylinux/rockylinux:${OS_VER} AS distro
 
 FROM distro AS runtime
-ARG FOAM_VERSION=2106
+ARG FOAM_VERSION=2112
 ARG PACKAGE=openfoam${FOAM_VERSION}
 
 RUN dnf -y install wget rsync \
