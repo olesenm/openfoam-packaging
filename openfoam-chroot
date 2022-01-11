@@ -9,7 +9,7 @@ image="focal-build-openfoam"
 #   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
-#     Copyright (C) 2020-2021 OpenCFD Ltd.
+#     Copyright (C) 2020-2022 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # SPDX-License-Identifier: (GPL-3.0+)
 #
@@ -36,7 +36,8 @@ options:
   -data=DIR         Specify mount dir for container '/data'
   -dir=dir          Change directory
   -dist=name        Specify the distro code name (eg focal, leap, ...)
-  -image=NAME       Specify image
+  -image=NAME | -i=NAME
+                    Specify image to run
   -scratch          Same as -dir=scratch
 HELP_HEAD
 
@@ -44,16 +45,18 @@ if [ -n "$1" ]
 then
 cat<<'HELP_FULL'
   -entry=PATH       Alternative entry point
-  -buildah          Use buildah instead of docker (FUTURE)
   -docker           Use docker (default)
-  -podman           Use podman instead of docker (FUTURE)
+  -podman           Use podman instead of docker
   -sudo             Prefix container calls with 'sudo'
   -quiet            Reduce verbosity
+  -dry-run          Report the start command, without running
+  --shm-size=BYTES  Size of /dev/shm (eg, --shm-size=4G)
 HELP_FULL
 fi
 
 cat<<'FOOTER'
-  -help             Print the usage
+  -h | -help        Display short help and exit
+  -help-full        Display full help and exit
 
 shortcuts:
   clean                 [debian/rules clean] - performs a shallow clean
@@ -87,9 +90,13 @@ die()
 # Parse options
 toolChain=docker
 container_home='/home/user'             # Home for container user
+container_tmphome='/tmp/.home.user'     # Fake home for container user
 
 
 #------------------------------------------------------------------------------
+
+# Select 'podman' toolchain if mentioned in script name:
+case "${0##*/}" in (*-podman*) toolChain=podman;; esac
 
 # Default distName from the script name (stripped of initial "Run-")
 distName="${0##*/Run-}"
@@ -119,7 +126,7 @@ esac
 # Parse options
 
 unset sudo
-unset optDryrun optEntrypoint optQuiet optVerbose
+unset optDryrun optEntrypoint optQuiet optVerbose optShmSize
 unset mount2Dir
 
 while [ "$#" -gt 0 ]
@@ -127,21 +134,29 @@ do
     case "$1" in
     ('') ;;
 
-    (-h | -help*)
+    (-help-f*)   # Full help
+        printHelp -full
+        ;;
+
+    (-h | -help* | --help*)  # Short help
         printHelp
         ;;
 
-    (-buildah | -docker | -podman)
+    (-docker | -podman)
         toolChain="${1#*-}"
         ;;
+    (-sudo)     # Use sudo
+        sudo="sudo"
+        ;;
+    (--shm-size=*)
+        optShmSize="${1#*=}"
+        ;;
+
     (-dir=*)
         cd "${1#*=}" || exit
         ;;
     (-scratch)
         cd "${1#*-}" || exit
-        ;;
-    (-entry=*)   # Alternative entrypoint
-        optEntrypoint="${1#*=}"
         ;;
 
     # Additional DATA mount
@@ -149,22 +164,21 @@ do
         mount2Dir="${1#*=}"
         ;;
 
-    (-dist=*)
+    (-entry=*)            # Alternative entrypoint
+        optEntrypoint="${1#*=}"
+        ;;
+    (-dist=*)             # dist-specific build image
         distName="${1#*=}"
         image="${distName}-build-openfoam"
         ;;
 
-    (-image=*)
+    (-i=* | -image=*)     # Alternative image name
         image="${1#*=}"
         ;;
 
     (-dry-run | -dryrun)
         optDryrun=true
         ;;
-    (-sudo)     # Use sudo
-        sudo="sudo"
-        ;;
-
     (-quiet)
         optQuiet=true
         ;;
@@ -284,12 +298,13 @@ Cmd:    $@
 INFORMATION
 fi
 
-$runPrefix ${toolChain:?} run \
+exec $runPrefix ${toolChain:?} run \
     --rm -t -i \
     --env=DEB_BUILD_OPTIONS="parallel=0" \
     --env=USERID="$guest_uid" \
     $(mount_points) \
     ${mount2Dir:+--volume="$mount2Dir:/data"} \
+    ${optShmSize:+--shm-size="$optShmSize"} \
     ${optEntrypoint:+--entrypoint="$optEntrypoint"} \
     "$image" "$@"
 

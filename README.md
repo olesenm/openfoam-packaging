@@ -1,6 +1,6 @@
 ## About
 
-Files and assets for creating
+Files and assets for creating and running
 [OpenFOAM](https://www.openfoam.com) container images.
 
 - https://hub.docker.com/u/opencfd/
