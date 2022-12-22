@@ -1,5 +1,5 @@
 # ---------------------------------*-sh-*------------------------------------
-# Copyright (C) 2021 OpenCFD Ltd.
+# Copyright (C) 2021-2022 OpenCFD Ltd.
 # SPDX-License-Identifier: (GPL-3.0+)
 #
 # openSUSE Leap environment for building OpenFOAM packages,
@@ -9,20 +9,20 @@
 #
 #     docker build -f build_leap.Dockerfile .
 #
-#     docker build --build-arg OS_VER=15.3 -t leap-build-openfoam ...
+#     docker build --build-arg OS_VER=15.4 -t leap-build-openfoam ...
 #
 # ---------------------------------------------------------------------------
-ARG OS_VER=15.3
+ARG OS_VER=15.4
 
 FROM opensuse/leap:${OS_VER} AS distro
 
 FROM distro AS base0
 ARG MPI_TYPE=openmpi2
 
-RUN zypper install -y rsync wget sudo nss_wrapper \
- && zypper install -y -t pattern devel_C_C++ \
- && zypper install -y cmake git rpm-build \
- && zypper install -y \
+RUN zypper -n install -y rsync wget sudo nss_wrapper \
+ && zypper -n install -y -t pattern devel_C_C++ \
+ && zypper -n install -y cmake git rpm-build \
+ && zypper -n install -y \
     gcc-c++ \
     flex libfl-devel \
     readline-devel zlib-devel \
@@ -31,10 +31,10 @@ RUN zypper install -y rsync wget sudo nss_wrapper \
     libboost_system-devel \
     libboost_thread-devel \
     mpfr-devel gmp-devel \
- && zypper -n addrepo -f --no-gpgcheck \
-    'https://download.opensuse.org/repositories/science/openSUSE_Leap_$releasever/' science \
- && zypper --no-gpg-checks refresh science \
- && zypper install -y \
+ && zypper -n addrepo -f \
+    'https://download.opensuse.org/repositories/science/$releasever/' science \
+ && zypper -n --gpg-auto-import-keys refresh science \
+ && zypper -n install -y \
     scotch-devel ptscotch-${MPI_TYPE}-devel \
     cgal-devel \
  && zypper -n clean

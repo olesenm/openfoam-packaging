@@ -1,5 +1,5 @@
 # ---------------------------------*-sh-*------------------------------------
-# Copyright (C) 2021 OpenCFD Ltd.
+# Copyright (C) 2021-2022 OpenCFD Ltd.
 # SPDX-License-Identifier: (GPL-3.0+)
 #
 # Mininal ubuntu environment with dpkg functionality.
@@ -15,7 +15,7 @@
 #
 #     docker build -f dpkg-tools_ubuntu.Dockerfile .
 #
-#     docker build --build-arg OS_VER=impish -t impish-dpkg-tools ...
+#     docker build --build-arg OS_VER=jammy -t jammy-dpkg-tools ...
 #
 # ---------------------------------------------------------------------------
 ARG OS_VER=latest

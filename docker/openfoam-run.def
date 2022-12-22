@@ -2,7 +2,7 @@
 # Copyright (C) 2021-2022 OpenCFD Ltd.
 # SPDX-License-Identifier: (GPL-3.0+)
 #
-# Create openfoam '-run' image using Ubuntu.
+# Create openfoam '-run' (or -dev) image using Ubuntu.
 #
 # Example
 #     apptainer build --fakeroot openfoam2212.sif openfoam-run.def
@@ -27,7 +27,7 @@ From: ubuntu:latest
 
     wget -q -O - https://dl.openfoam.com/add-debian-repo.sh | bash
     apt-get update
-    apt-get -y install --no-install-recommends openfoam2206
+    apt-get -y install --no-install-recommends openfoam2206-dev
     rm -rf /var/lib/apt/lists/*
 
 %post

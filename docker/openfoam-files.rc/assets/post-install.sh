@@ -22,6 +22,14 @@ do
     (-no-sudo)
         unset sudo_user ;;
 
+    (-upgrade=*)
+        if [ -d /openfoam ]
+        then
+            echo "# Add upgrade warning: ${1#*=}" 1>&2
+            echo "Upgrade to image: ${1#*=}" >| /openfoam/warn-upgrade
+        fi
+        ;;
+
     # Correct some permissions (or use fix-perms.sh beforehand)
     (-fix-perms)
         if [ -d /openfoam ]

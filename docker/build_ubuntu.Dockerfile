@@ -1,5 +1,5 @@
 # ---------------------------------*-sh-*------------------------------------
-# Copyright (C) 2021 OpenCFD Ltd.
+# Copyright (C) 2021-2022 OpenCFD Ltd.
 # SPDX-License-Identifier: (GPL-3.0+)
 #
 # Ubuntu environment for building OpenFOAM packages,
@@ -9,7 +9,7 @@
 #
 #     docker build -f build_ubuntu.Dockerfile .
 #
-#     docker build --build-arg OS_VER=impish -t impish-build-openfoam ...
+#     docker build --build-arg OS_VER=jammy -t jammy-build-openfoam ...
 #
 # ---------------------------------------------------------------------------
 ARG OS_VER=latest

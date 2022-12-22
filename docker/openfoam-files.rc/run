@@ -183,6 +183,20 @@ fi
 
 # ----------------------------------------------------------------------
 
+unset warn_upgrade
+
+if [ -f /openfoam/warn-upgrade ]
+then
+    warn_upgrade=true
+    echo "#################################" 1>&2
+    echo "WARNING: using a deprecated image" 1>&2
+    echo "#################################" 1>&2
+    echo 1>&2
+    cat /openfoam/warn-upgrade 1>&2
+    echo 1>&2
+    echo "#################################" 1>&2
+fi
+
 # Dispatch: interactive/non-interactive
 if [ "$#" -eq 0 ] && [ -z "$_foamScriptCommand" ]
 then
@@ -190,7 +204,7 @@ then
     # -----------------
 
     if [ -f /openfoam/assets/welcome.sh ]
-    then sh /openfoam/assets/welcome.sh
+    then sh /openfoam/assets/welcome.sh ${warn_upgrade:+-brief}
     fi
 
     export SHELL="/bin/bash"
