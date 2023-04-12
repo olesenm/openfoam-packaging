@@ -1,6 +1,6 @@
 #!/bin/sh
 # Default image
-image="focal-build-openfoam"
+image="jammy-build-openfoam"
 
 #------------------------------------------------------------------------------
 # =========                 |
@@ -25,7 +25,7 @@ image="focal-build-openfoam"
 #
 #     Has various debian-specific build shortcut options (subject to change).
 #
-#     Images are normally named (focal-build-openfoam etc)
+#     Images are normally named (jammy-build-openfoam etc)
 #
 #------------------------------------------------------------------------------
 printHelp() {
@@ -35,7 +35,7 @@ Usage: $0 [OPTION] [short-cut | command]
 options:
   -data=DIR         Specify mount dir for container '/data'
   -dir=dir          Change directory
-  -dist=name        Specify the distro code name (eg focal, leap, ...)
+  -dist=name        Specify the distro code name (eg jammy, leap, ...)
   -image=NAME | -i=NAME
                     Specify image to run
   -scratch          Same as -dir=scratch
@@ -104,14 +104,14 @@ distName="${distName##*/}"
 
 case "$distName" in
 (*-build-openfoam)
-    # Eg, called as "Run-focal-build-openfoam" etc,
+    # Eg, called as "Run-ubuntu-build-openfoam" etc,
     # - treat like as an qualified image name to run.
     image="${distName}"
     ;;
 (*)
     if [ "${distName#*-}" = "${distName}" ]
     then
-        # Eg, called as "Run-focal" etc. Treat as build image
+        # Eg, called as "Run-ubuntu" etc. Treat as build image
         # - treat like as an unqualified build image name.
         image="${distName}-build-openfoam"
     fi
@@ -120,7 +120,7 @@ esac
 
 # Other examples
 #     Run-leap
-#     openfoam-chroot -image=focal-build-mingw
+#     openfoam-chroot -image=jammy-build-mingw
 
 #------------------------------------------------------------------------------
 # Parse options
