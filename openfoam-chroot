@@ -9,7 +9,7 @@ image="jammy-build-openfoam"
 #   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
-#     Copyright (C) 2020-2022 OpenCFD Ltd.
+#     Copyright (C) 2020-2023 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # SPDX-License-Identifier: (GPL-3.0+)
 #
@@ -55,6 +55,7 @@ HELP_FULL
 fi
 
 cat<<'FOOTER'
+  -- | -            The end of option processing.
   -h | -help        Display short help and exit
   -help-full        Display full help and exit
 
@@ -132,7 +133,11 @@ unset mount2Dir
 while [ "$#" -gt 0 ]
 do
     case "$1" in
-    ('') ;;
+    ('') ;;     # Ignore empty option
+    (- | --)
+        shift
+        break   # Stop option parsing
+        ;;
 
     (-help-f*)   # Full help
         printHelp -full
