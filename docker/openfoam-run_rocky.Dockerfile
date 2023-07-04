@@ -22,6 +22,7 @@ RUN dnf -y install wget rsync \
  && dnf -y install 'dnf-command(config-manager)' \
  && dnf -y config-manager --set-enabled powertools \
  && dnf -y install epel-release \
+ && crb enable \
  && dnf -y install 'dnf-command(copr)' \
  && dnf -y copr enable openfoam/openfoam \
  && dnf -y install ${PACKAGE} \
