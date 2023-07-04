@@ -6,8 +6,8 @@
 #
 # Example
 #     docker build -f openfoam-run.Dockerfile .
-#     docker build --build-arg OS_VER=impish --build-arg FOAM_VERSION=2212
-#         -t opencfd/openfoam-run:2212 ...
+#     docker build --build-arg OS_VER=jammy --build-arg FOAM_VERSION=2306
+#         -t opencfd/openfoam-run:2306 ...
 #
 # Note
 #     Uses wget for fewer dependencies than curl
@@ -29,7 +29,7 @@ RUN apt-get update \
 
 # Version-specific runtime layer
 FROM base0 AS runtime
-ARG FOAM_VERSION=2212
+ARG FOAM_VERSION=2306
 ARG PACKAGE=openfoam${FOAM_VERSION}
 ARG DEBIAN_FRONTEND=noninteractive
 

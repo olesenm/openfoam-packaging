@@ -6,11 +6,11 @@
 #
 # Example
 #     docker build -f openfoam-default.Dockerfile .
-#     docker build --build-arg FOAM_VERSION=2212
-#         -t opencfd/openfoam-default:2212 ...
+#     docker build --build-arg FOAM_VERSION=2306
+#         -t opencfd/openfoam-default:2306 ...
 #
 # ---------------------------------------------------------------------------
-ARG FOAM_VERSION=2212
+ARG FOAM_VERSION=2306
 
 FROM opencfd/openfoam-dev:${FOAM_VERSION}
 ARG FOAM_VERSION

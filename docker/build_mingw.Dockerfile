@@ -1,5 +1,5 @@
 # ---------------------------------*-sh-*------------------------------------
-# Copyright (C) 2021-2022 OpenCFD Ltd.
+# Copyright (C) 2021-2023 OpenCFD Ltd.
 # SPDX-License-Identifier: (GPL-3.0+)
 #
 # openSUSE Leap environment for building OpenFOAM packages with mingw.
@@ -11,10 +11,10 @@
 #
 #     docker build -f build_mingw.Dockerfile .
 #
-#     docker build --build-arg OS_VER=15.4 -t mingw-build-openfoam ...
+#     docker build --build-arg OS_VER=15.5 -t mingw-build-openfoam ...
 #
 # ---------------------------------------------------------------------------
-ARG OS_VER=15.4
+ARG OS_VER=15.5
 
 FROM opensuse/leap:${OS_VER} AS distro
 

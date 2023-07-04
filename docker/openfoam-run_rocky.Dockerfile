@@ -1,12 +1,12 @@
 # ---------------------------------*-sh-*------------------------------------
-# Copyright (C) 2021-2022 OpenCFD Ltd.
+# Copyright (C) 2021-2023 OpenCFD Ltd.
 # SPDX-License-Identifier: (GPL-3.0+)
 #
 # Create openfoam '-run' image for Rocky Linux using copr repo.
 #
 # Example
 #     docker build -f openfoam-run_rocky.Dockerfile .
-#     docker build --build-arg OS_VER=8 --build-arg FOAM_VERSION=2212 ...
+#     docker build --build-arg OS_VER=8 --build-arg FOAM_VERSION=2306 ...
 #
 # ---------------------------------------------------------------------------
 ARG OS_VER=latest
@@ -14,7 +14,7 @@ ARG OS_VER=latest
 FROM rockylinux/rockylinux:${OS_VER} AS distro
 
 FROM distro AS runtime
-ARG FOAM_VERSION=2212
+ARG FOAM_VERSION=2306
 ARG PACKAGE=openfoam${FOAM_VERSION}
 
 RUN dnf -y install wget rsync \

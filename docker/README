@@ -28,3 +28,18 @@
 
 The build container currently uses the /openfoam/chroot entrypoint
 for user rights. See comments within that file.
+
+---
+
+Push docker images (for example):
+
+- docker push opencfd/openfoam-default:latest
+
+
+Push apptainer images (for example):
+
+- apptainer remote login --username opencfd oras://docker.io
+
+- apptainer push openfoam-dev_2306.sif oras://docker.io/opencfd/openfoam-dev:latest
+
+- apptainer pull oras://docker.io/opencfd/openfoam-dev:latest
