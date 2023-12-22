@@ -13,7 +13,7 @@ scriptVersion="2022-01-10"
 #------------------------------------------------------------------------------
 #    Copyright (C) 2016-2022 OpenCFD Ltd.
 #------------------------------------------------------------------------------
-# SPDX-License-Identifier: (GPL-3.0+)
+# SPDX-License-Identifier: (GPL-3.0-or-later)
 #
 # Script
 #     openfoam-docker

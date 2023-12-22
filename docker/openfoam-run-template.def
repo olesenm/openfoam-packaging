@@ -1,12 +1,12 @@
 # ---------------------------------*-sh-*------------------------------------
-# Copyright (C) 2021-2022 OpenCFD Ltd.
-# SPDX-License-Identifier: (GPL-3.0+)
+# Copyright (C) 2021-2023 OpenCFD Ltd.
+# SPDX-License-Identifier: (GPL-3.0-or-later)
 #
 # Create openfoam '-run' (or -dev) image using Ubuntu.
 #
 # Example
-#     apptainer build openfoam2306.sif openfoam-run-template.def
-#     apptainer build --build-arg OS_VER=jammy --build-arg FOAM_VERSION=2306 ...
+#     apptainer build openfoam2312.sif openfoam-run-template.def
+#     apptainer build --build-arg OS_VER=jammy --build-arg FOAM_VERSION=2312 ...
 #
 # Note
 #     Uses wget for fewer dependencies than curl
@@ -20,7 +20,7 @@ From: ubuntu:{{ OS_VER }}
 
 %arguments
     OS_VER=latest
-    FOAM_VERSION=2306
+    FOAM_VERSION=2312
     PACKAGE=openfoam{{ FOAM_VERSION }}-dev
 
 %post

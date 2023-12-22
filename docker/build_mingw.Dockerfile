@@ -1,6 +1,6 @@
 # ---------------------------------*-sh-*------------------------------------
 # Copyright (C) 2021-2023 OpenCFD Ltd.
-# SPDX-License-Identifier: (GPL-3.0+)
+# SPDX-License-Identifier: (GPL-3.0-or-later)
 #
 # openSUSE Leap environment for building OpenFOAM packages with mingw.
 #

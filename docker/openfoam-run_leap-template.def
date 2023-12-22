@@ -1,12 +1,12 @@
 # ---------------------------------*-sh-*------------------------------------
 # Copyright (C) 2023 OpenCFD Ltd.
-# SPDX-License-Identifier: (GPL-3.0+)
+# SPDX-License-Identifier: (GPL-3.0-or-later)
 #
 # Create openfoam '-run' image for openSUSE using science repo.
 #
 # Example
-#     apptainer build openfoam2306.sif openfoam-run_leap-template.def
-#     apptainer build --build-arg OS_VER=15.5 --build-arg FOAM_VERSION=2306 ...
+#     apptainer build openfoam2312.sif openfoam-run_leap-template.def
+#     apptainer build --build-arg OS_VER=15.5 --build-arg FOAM_VERSION=2312 ...
 #
 # ---------------------------------------------------------------------------
 # Use add-science-repo.sh script, or
@@ -25,7 +25,7 @@ From: opensuse/leap:{{ OS_VER }}
 
 %arguments
     OS_VER=15.5
-    FOAM_VERSION=2306
+    FOAM_VERSION=2312
     PACKAGE=openfoam{{ FOAM_VERSION }}-devel
 
 %post

@@ -2,7 +2,7 @@
 # File: /openfoam/assets/post-install.sh
 #
 # Copyright (C) 2020-2023 OpenCFD Ltd.
-# SPDX-License-Identifier: (GPL-3.0+)
+# SPDX-License-Identifier: (GPL-3.0-or-later)
 #
 # A post-installation setup adjustment (OpenFOAM container environment)
 #

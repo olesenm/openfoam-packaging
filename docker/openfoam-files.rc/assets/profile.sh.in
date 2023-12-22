@@ -2,7 +2,7 @@
 # File: /etc/profile.d/openfoam-99run.sh
 #
 # Copyright (C) 2021-2022 OpenCFD Ltd.
-# SPDX-License-Identifier: (GPL-3.0+)
+# SPDX-License-Identifier: (GPL-3.0-or-later)
 #
 # Environment settings for OpenFOAM (www.openfoam.com)
 #

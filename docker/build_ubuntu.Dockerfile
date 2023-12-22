@@ -1,6 +1,6 @@
 # ---------------------------------*-sh-*------------------------------------
 # Copyright (C) 2021-2022 OpenCFD Ltd.
-# SPDX-License-Identifier: (GPL-3.0+)
+# SPDX-License-Identifier: (GPL-3.0-or-later)
 #
 # Ubuntu environment for building OpenFOAM packages,
 # uses system packages wherever possible.

@@ -2,7 +2,7 @@
 # File: /openfoam/chroot
 # ----------------------------------------------------------------------
 # Copyright (C) 2020-2021 OpenCFD Ltd.
-# SPDX-License-Identifier: (GPL-3.0+)
+# SPDX-License-Identifier: (GPL-3.0-or-later)
 #
 # Entry-point for container (eg, docker) that adds a local user based
 # on the USERID passed in, or a fallback value.

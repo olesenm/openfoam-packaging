@@ -1,6 +1,6 @@
 # ---------------------------------*-sh-*------------------------------------
 # Copyright (C) 2021 OpenCFD Ltd.
-# SPDX-License-Identifier: (GPL-3.0+)
+# SPDX-License-Identifier: (GPL-3.0-or-later)
 #
 # Deployment of a self-container OpenFOAM package within a redhat/ubi
 # container.

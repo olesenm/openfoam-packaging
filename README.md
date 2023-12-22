@@ -21,11 +21,11 @@ Ubuntu or openSUSE Leap components.
 
 ## License
 
-File assets are GPL-3.0+ (as per OpenFOAM itself).
+File assets are GPL-3.0-or-later, as per OpenFOAM itself.
 
 
 ---
-Copyright (C) 2021-2023 OpenCFD Ltd.
+Copyright (C) 2021-2024 OpenCFD Ltd.
 
 [wiki-docker]: https://develop.openfoam.com/Development/openfoam/-/wikis/precompiled/docker
 [wiki-notes]: https://develop.openfoam.com/packaging/containers/-/wikis/home

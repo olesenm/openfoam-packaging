@@ -1,6 +1,6 @@
 # ---------------------------------*-sh-*------------------------------------
 # Copyright (C) 2021-2023 OpenCFD Ltd.
-# SPDX-License-Identifier: (GPL-3.0+)
+# SPDX-License-Identifier: (GPL-3.0-or-later)
 #
 # Create openfoam '-run' image for openSUSE using science repo.
 #

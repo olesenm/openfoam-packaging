@@ -2,7 +2,7 @@
 # File: /openfoam/assets/query.sh
 #
 # Copyright (C) 2021 OpenCFD Ltd.
-# SPDX-License-Identifier: (GPL-3.0+)
+# SPDX-License-Identifier: (GPL-3.0-or-later)
 #
 # Handle some basic queries related to OpenFOAM installation.
 # naming as per etc/openfoam script

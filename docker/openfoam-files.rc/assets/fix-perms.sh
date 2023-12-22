@@ -2,7 +2,7 @@
 # File: /openfoam/assets/fix-perms.sh
 #
 # Copyright (C) 2021 OpenCFD Ltd.
-# SPDX-License-Identifier: (GPL-3.0+)
+# SPDX-License-Identifier: (GPL-3.0-or-later)
 #
 # A post-installation fix permissions on (OpenFOAM container environment)
 #

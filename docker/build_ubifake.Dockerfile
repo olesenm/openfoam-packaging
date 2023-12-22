@@ -1,6 +1,6 @@
 # ---------------------------------*-sh-*------------------------------------
 # Copyright (C) 2021 OpenCFD Ltd.
-# SPDX-License-Identifier: (GPL-3.0+)
+# SPDX-License-Identifier: (GPL-3.0-or-later)
 #
 # RedHat-type of environment for building OpenFOAM with ThirdParty packages
 # to target redhat/ubi images.

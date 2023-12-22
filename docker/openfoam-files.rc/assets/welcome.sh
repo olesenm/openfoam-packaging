@@ -1,8 +1,8 @@
 # --------------------------------*- sh -*-----------------------------------
 # File: /openfoam/assets/welcome.sh
 #
-# Copyright (C) 2020-2022 OpenCFD Ltd.
-# SPDX-License-Identifier: (GPL-3.0+)
+# Copyright (C) 2020-2023 OpenCFD Ltd.
+# SPDX-License-Identifier: (GPL-3.0-or-later)
 #
 # General information to display on startup (interactive shell)
 #
@@ -102,6 +102,8 @@ __BRIEF__
     exit 0
 fi
 
+# Include location of container recipes to make it easier to make
+# modified versions
 cat<< '__BANNER__'
 ---------------------------------------------------------------------------
   =========                 |
@@ -109,6 +111,8 @@ cat<< '__BANNER__'
    \\    /   O peration     |
     \\  /    A nd           | www.openfoam.com
      \\/     M anipulation  |
+---------------------------------------------------------------------------
+ Container Recipes:  https://develop.openfoam.com/packaging/containers
 ---------------------------------------------------------------------------
 __BANNER__
 

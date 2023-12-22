@@ -1,13 +1,13 @@
 # ---------------------------------*-sh-*------------------------------------
-# Copyright (C) 2021-2022 OpenCFD Ltd.
-# SPDX-License-Identifier: (GPL-3.0+)
+# Copyright (C) 2021-2023 OpenCFD Ltd.
+# SPDX-License-Identifier: (GPL-3.0-or-later)
 #
 # Create openfoam '-run' image using Ubuntu.
 #
 # Example
 #     docker build -f openfoam-run.Dockerfile .
-#     docker build --build-arg OS_VER=jammy --build-arg FOAM_VERSION=2306
-#         -t opencfd/openfoam-run:2306 ...
+#     docker build --build-arg OS_VER=jammy --build-arg FOAM_VERSION=2312
+#         -t opencfd/openfoam-run:2312 ...
 #
 # Note
 #     Uses wget for fewer dependencies than curl
@@ -29,7 +29,7 @@ RUN apt-get update \
 
 # Version-specific runtime layer
 FROM base0 AS runtime
-ARG FOAM_VERSION=2306
+ARG FOAM_VERSION=2312
 ARG PACKAGE=openfoam${FOAM_VERSION}
 ARG DEBIAN_FRONTEND=noninteractive
 
