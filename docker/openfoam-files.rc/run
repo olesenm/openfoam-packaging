@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 # File: /openfoam/run
 # ----------------------------------------------------------------------
 # Copyright (C) 2020-2022 OpenCFD Ltd.
-# SPDX-License-Identifier: (GPL-3.0+)
+# SPDX-License-Identifier: (GPL-3.0-or-later)
 #
 # Entry-point for OPENFOAM container with nss-wrapper for user/group
 # handling  [cf, https://github.com/atbentley/docker-nss-wrapper]
