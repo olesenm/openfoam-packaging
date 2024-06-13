@@ -1,29 +1,35 @@
 # ---------------------------------*-sh-*------------------------------------
-# Copyright (C) 2021-2024 OpenCFD Ltd.
+# Copyright (C) 2021-2023 OpenCFD Ltd.
 # SPDX-License-Identifier: (GPL-3.0-or-later)
 #
-# Create openfoam '-run' image for Rocky Linux using copr repo.
+# Create openfoam '-dev' image for Rocky Linux using copr repo.
 #
 # Example
-#     apptainer build --fakeroot openfoam2406.sif openfoam-run_rocky.def
+#     apptainer build openfoam2406.sif openfoam-run_rocky-template.def
+#     apptainer build --build-arg OS_VER=8 --build-arg FOAM_VERSION=2406 ...
+#         --build-arg FOAM_SUBPKG=-default ...
 #
 # ---------------------------------------------------------------------------
 Bootstrap: docker
-From: rockylinux/rockylinux:latest
+From: rockylinux/rockylinux:{{ OS_VER }}
 
 %files
     openfoam-files.rc/* /openfoam/
 
+%arguments
+    OS_VER=latest
+    FOAM_VERSION=2406
+    FOAM_SUBPKG=-devel
+    PACKAGE=openfoam{{ FOAM_VERSION }}{{ FOAM_SUBPKG }}
+
 %post
-    dnf -y install wget rsync \
-    passwd shadow-utils nss_wrapper
+    dnf -y install wget rsync
     dnf -y install 'dnf-command(config-manager)'
-    dnf -y config-manager --set-enabled powertools
     dnf -y install epel-release
     crb enable
     dnf -y install 'dnf-command(copr)'
     dnf -y copr enable openfoam/openfoam
-    dnf -y install openfoam2406-devel
+    dnf -y install {{ PACKAGE }}
     dnf -y clean all
 
 %post
@@ -34,5 +40,6 @@ From: rockylinux/rockylinux:latest
 
 %labels
     Author OpenCFD Ltd.
+    Author CIQ Inc.
 
 # ---------------------------------------------------------------------------

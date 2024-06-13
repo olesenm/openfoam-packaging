@@ -7,6 +7,7 @@
 # Example
 #     apptainer build openfoam2406.sif openfoam-dev-template.def
 #     apptainer build --build-arg OS_VER=noble --build-arg FOAM_VERSION=2406 ...
+#         --build-arg FOAM_SUBPKG=-default ...
 #
 # Note
 #     Uses wget for fewer dependencies than curl
@@ -21,7 +22,8 @@ From: ubuntu:{{ OS_VER }}
 %arguments
     OS_VER=latest
     FOAM_VERSION=2406
-    PACKAGE=openfoam{{ FOAM_VERSION }}
+    FOAM_SUBPKG=-dev
+    PACKAGE=openfoam{{ FOAM_VERSION }}{{ FOAM_SUBPKG }}
 
 %post
     echo "Installing package <{{PACKAGE}}>" 1>&2
