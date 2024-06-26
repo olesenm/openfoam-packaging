@@ -9,7 +9,7 @@
 #
 #     docker build -f build_ubuntu.Dockerfile .
 #
-#     docker build --build-arg OS_VER=jammy -t jammy-build-openfoam ...
+#     docker build --build-arg OS_VER=noble -t noble-build-openfoam ...
 #
 # ---------------------------------------------------------------------------
 ARG OS_VER=latest

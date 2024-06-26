@@ -1,6 +1,6 @@
 #!/bin/sh
 # Default image
-image="jammy-build-openfoam"
+image="noble-build-openfoam"
 
 #------------------------------------------------------------------------------
 # =========                 |
@@ -9,7 +9,7 @@ image="jammy-build-openfoam"
 #   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
-#     Copyright (C) 2020-2023 OpenCFD Ltd.
+#     Copyright (C) 2020-2024 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # SPDX-License-Identifier: (GPL-3.0-or-later)
 #
@@ -25,7 +25,7 @@ image="jammy-build-openfoam"
 #
 #     Has various debian-specific build shortcut options (subject to change).
 #
-#     Images are normally named (jammy-build-openfoam etc)
+#     Images are normally named (noble-build-openfoam etc)
 #
 #------------------------------------------------------------------------------
 printHelp() {
@@ -35,7 +35,7 @@ Usage: $0 [OPTION] [short-cut | command]
 options:
   -data=DIR         Specify mount dir for container '/data'
   -dir=dir          Change directory
-  -dist=name        Specify the distro code name (eg jammy, leap, ...)
+  -dist=name        Specify the distro code name (eg noble, leap, ...)
   -image=NAME | -i=NAME
                     Specify image to run
   -scratch          Same as -dir=scratch
@@ -121,7 +121,7 @@ esac
 
 # Other examples
 #     Run-leap
-#     openfoam-chroot -image=jammy-build-mingw
+#     openfoam-chroot -image=leap-build-mingw
 
 #------------------------------------------------------------------------------
 # Parse options

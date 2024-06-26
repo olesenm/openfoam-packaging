@@ -1,0 +1,226 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2024 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# SPDX-License-Identifier: (GPL-3.0-or-later)
+#
+# Script
+#     00-multiarch-build
+#
+# Description
+#     Wrapper script to call docker buildx for (openfoam) multiarch builds
+#     and push to dockerhub
+#
+# Requires
+#     - docker buildx and/or docker build
+#
+#------------------------------------------------------------------------------
+cd "${0%/*}" || exit    # Run from this directory
+#------------------------------------------------------------------------------
+# Constants
+flavours="run dev default"
+platforms="linux/amd64,linux/arm64"
+dockerhub="opencfd"   # Dockerhub name
+
+#--------
+printHelp() {
+    cat <<USAGE
+Usage: $0 [OPTION] version
+options:
+  -DIGITS | -vDIGITS    The specified OpenFOAM version (eg, -2406, -v2406)
+  -latest               Also tag build image as 'latest'
+  -native               Native architecture build (without buildx)
+                        (current: '${platforms}')
+  -no-cache             Disable build cache
+  -no-push              Without pushing to dockerhub
+  -dockerhub=NAME       The dockerhub account name (eg, '$dockerhub')
+  -run | -dev | -default
+                        Image flavour to build (current: '${flavours}')
+  -flavour={run|dev|default}
+                        Type of image to build (current: '${flavours}')
+  -dryrun | -dry-run    Report the build command only
+  -help                 Print the usage
+
+Wrapper script to call docker buildx for (openfoam) multiarch builds
+
+USAGE
+    exit 0  # Clean exit
+}
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '$0 -help' for usage"
+    echo
+    exit 1
+}
+
+#------------------------------------------------------------------------------
+unset opt_dryrun opt_cache opt_latest version
+opt_push='--push'
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    (-h | -help* | --help*)
+        printHelp
+        ;;
+    (-dockerhub=*)
+        dockerhub="${1#*=}"
+        [ -n "$dockerhub" ] || die "Option '$1' missing an account name"
+        ;;
+    (-flavour=* | -flavor=*)
+        flavours="${1#*=}"
+        [ -n "$flavours" ] || die "Option '$1' missing a flavour"
+        ;;
+    (-run | -dev | -default)
+        flavours="${1#*-}"
+        ;;
+    (-native)
+        unset platforms
+        ;;
+    (-version=*)
+        version="${1#*=}"
+        [ -n "$version" ] || die "Option '$1' missing a VERSION"
+        ;;
+    (-[0-9]*)
+        version="${1#*-}"
+        [ -n "$version" ] || die "Option '$1' missing a VERSION"
+        ;;
+    (-v[0-9]*)
+        version="${1#*-v}"
+        [ -n "$version" ] || die "Option '$1' missing a VERSION"
+        ;;
+    (-dryrun | -dry-run)
+        opt_dryrun="dry-run: "
+        ;;
+
+    (-latest)
+        opt_latest=true
+        ;;
+    (-no-cache)
+        opt_cache='--no-cache'
+        ;;
+    (-no-push)
+        unset opt_push
+        ;;
+
+    (*)
+        die "unknown option/argument: '$*'"
+        ;;
+    esac
+    shift
+done
+
+#-------------------------------------------------------------------------------
+# Basic checks
+
+[ -n "$flavours" ] || die "No flavour(s) specified"
+[ -n "$version" ] || die "No version(s) specified"
+
+if [ -z "$platforms" ]
+then
+    echo "# Native architecture : build without buildx and pushing"
+    unset opt_push
+fi
+
+#-------------------------------------------------------------------------------
+# build
+
+if [ -n "$opt_dryrun" ]
+then
+    for flavour in ${flavours:?}
+    do
+        tag="${dockerhub}${dockerhub:+/}openfoam-${flavour}"
+
+        if [ -z "$platforms" ]
+        then
+            echo "$opt_dryrun" docker build \
+                --build-arg FOAM_VERSION="$version" \
+                ${opt_cache} \
+                -t "${tag}:${version}" \
+                ${opt_latest:+-t "${tag}:latest"} \
+                -f "openfoam-${flavour}.Dockerfile" \
+                .
+        else
+            echo "$opt_dryrun" docker buildx build \
+                ${platforms:+--platform} $platforms \
+                --build-arg FOAM_VERSION="$version" \
+                ${opt_cache} ${opt_push} \
+                -t "${tag}:${version}" \
+                ${opt_latest:+-t "${tag}:latest"} \
+                -f "openfoam-${flavour}.Dockerfile" \
+                .
+        fi
+    done
+else
+    for flavour in ${flavours:?}
+    do
+    (
+        tag="${dockerhub}${dockerhub:+/}openfoam-${flavour}"
+
+        if [ -z "$platforms" ]
+        then
+            set -x
+            docker build \
+                --build-arg FOAM_VERSION="$version" \
+                ${opt_cache} ${opt_push} \
+                -t "${tag}:${version}" \
+                ${opt_latest:+-t "${tag}:latest"} \
+                -f "openfoam-${flavour}.Dockerfile" \
+                .
+        else
+            set -x
+            docker buildx build \
+                ${platforms:+--platform} $platforms \
+                --build-arg FOAM_VERSION="$version" \
+                ${opt_cache} ${opt_push} \
+                -t "${tag}:${version}" \
+                ${opt_latest:+-t "${tag}:latest"} \
+                -f "openfoam-${flavour}.Dockerfile" \
+                .
+        fi
+    )
+    done
+fi
+
+# ---------------------------------------------------------------------------
+# suggestions of what to do next
+
+if [ -z "$opt_push" ]
+then
+
+    echo
+    echo "# built without --push, possible next actions:"
+    echo
+
+    for flavour in ${flavours:?}
+    do
+        tag_base="${dockerhub}${dockerhub:+/}openfoam-${flavour}"
+
+        for platform in $(echo "$platforms" | tr ',' ' ')
+        do
+            echo "  docker pull --platform $platform ${tag_base}:${version}"
+        done
+        echo "  docker push ${tag_base}:${version}"
+        echo
+    done
+
+    echo
+    echo "# ------------"
+fi
+
+
+#------------------------------------------------------------------------------

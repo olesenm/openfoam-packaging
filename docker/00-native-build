@@ -1,0 +1,21 @@
+#!/bin/sh
+# ---------------------------------------------------------------------------
+# Copyright (C) 2024 OpenCFD Ltd.
+# SPDX-License-Identifier: (GPL-3.0-or-later)
+#
+# Script
+#     00-native-build
+#
+# Description
+#     Wrapper script to call docker build for (openfoam) native
+#     architecture builds
+#
+# Requires
+#     - docker build
+#
+#------------------------------------------------------------------------------
+
+set -x
+exec "${0%/*}/00-multiarch-build" -native "$@"
+
+# ---------------------------------------------------------------------------

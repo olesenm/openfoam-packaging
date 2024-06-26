@@ -1,16 +1,16 @@
 # ---------------------------------*-sh-*------------------------------------
-# Copyright (C) 2021-2023 OpenCFD Ltd.
+# Copyright (C) 2021-2024 OpenCFD Ltd.
 # SPDX-License-Identifier: (GPL-3.0-or-later)
 #
 # Add default (tutorials etc) layer onto the openfoam '-dev' (Ubuntu) image.
 #
 # Example
 #     docker build -f openfoam-default.Dockerfile .
-#     docker build --build-arg FOAM_VERSION=2312
-#         -t opencfd/openfoam-default:2312 ...
+#     docker build --build-arg FOAM_VERSION=2406
+#         -t opencfd/openfoam-default:2406 ...
 #
 # ---------------------------------------------------------------------------
-ARG FOAM_VERSION=2312
+ARG FOAM_VERSION=2406
 
 FROM opencfd/openfoam-dev:${FOAM_VERSION}
 ARG FOAM_VERSION

@@ -15,7 +15,7 @@
 #
 #     docker build -f dpkg-tools_ubuntu.Dockerfile .
 #
-#     docker build --build-arg OS_VER=jammy -t jammy-dpkg-tools ...
+#     docker build --build-arg OS_VER=noble -t noble-dpkg-tools ...
 #
 # ---------------------------------------------------------------------------
 ARG OS_VER=latest
