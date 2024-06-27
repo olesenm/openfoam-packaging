@@ -37,13 +37,12 @@ options:
   -latest               Also tag build image as 'latest'
   -native               Native architecture build (without buildx)
                         (current: '${platforms}')
-  -no-cache             Disable build cache
+  -cache | -no-cache    Enable/disable build cache (default: disabled)
   -no-push              Without pushing to dockerhub
   -dockerhub=NAME       The dockerhub account name (eg, '$dockerhub')
+  -flavour=TYPE         Image flavour to build (current: '${flavours}')
   -run | -dev | -default
-                        Image flavour to build (current: '${flavours}')
-  -flavour={run|dev|default}
-                        Type of image to build (current: '${flavours}')
+                        Shorthand for -flavour=...
   -dryrun | -dry-run    Report the build command only
   -help                 Print the usage
 
@@ -67,7 +66,11 @@ die()
 }
 
 #------------------------------------------------------------------------------
-unset opt_dryrun opt_cache opt_latest version
+unset opt_dryrun opt_latest version
+
+# By default rebuild without a cache since the installed package names
+# (eg, openfoamVER) don't change with updates etc.
+opt_cache='--no-cache'
 opt_push='--push'
 
 # Parse options
@@ -110,6 +113,9 @@ do
     (-latest)
         opt_latest=true
         ;;
+    (-cache)
+        unset opt_cache
+        ;;
     (-no-cache)
         opt_cache='--no-cache'
         ;;
@@ -124,15 +130,22 @@ do
     shift
 done
 
+# Fix up names of flavours
+case "$flavours" in
+(full)
+    flavours='default'
+    ;;
+esac
+
 #-------------------------------------------------------------------------------
 # Basic checks
 
 [ -n "$flavours" ] || die "No flavour(s) specified"
-[ -n "$version" ] || die "No version(s) specified"
+[ -n "$version" ]  || die "No version(s) specified"
 
 if [ -z "$platforms" ]
 then
-    echo "# Native architecture : build without buildx and pushing"
+    echo "# Native architecture : build without buildx and pushing" 1>&2
     unset opt_push
 fi
 
